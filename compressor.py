@@ -1,4 +1,4 @@
-from defs import m4_MAX_OFFSET, d_MASK, m2_MAX_OFFSET, m2_MAX_LEN, d_BITS, d_HIGH, m3_MARKER, m4_MARKER, m4_MAX_LEN, m3_MAX_OFFSET
+import defs
 
 
 class LZOCompressor:
@@ -12,9 +12,9 @@ class LZOCompressor:
 
     def compress(self, data: bytes):
         out = bytearray()
-        dict_table = [-1] * (1 << d_BITS)
+        dict_table = [-1] * (1 << defs.d_BITS)
         in_len = len(data)
-        ip_len = in_len - m2_MAX_LEN - 5
+        ip_len = in_len - defs.m2_MAX_LEN - 5
         ii = 0
         ip = 4
 
@@ -22,23 +22,23 @@ class LZOCompressor:
             key = (data[ip + 3] << 6) ^ data[ip + 2]
             key = (key << 5) ^ data[ip + 1]
             key = (key << 5) ^ data[ip]
-            dindex = ((0x21 * key) >> 5) & d_MASK
+            dindex = ((0x21 * key) >> 5) & defs.d_MASK
             m_pos = dict_table[dindex]
 
-            if m_pos < 0 or ip == m_pos or (ip - m_pos) > m4_MAX_OFFSET:
+            if m_pos < 0 or ip == m_pos or (ip - m_pos) > defs.m4_MAX_OFFSET:
                 goto_literal = True
             else:
                 m_off = ip - m_pos
-                if m_off <= m2_MAX_OFFSET or data[m_pos + 3] == data[ip + 3]:
+                if m_off <= defs.m2_MAX_OFFSET or data[m_pos + 3] == data[ip + 3]:
                     goto_literal = False
                 else:
-                    dindex = (dindex & (d_MASK & 0x7FF)) ^ (d_HIGH | 0x1F)
+                    dindex = (dindex & (defs.d_MASK & 0x7FF)) ^ (defs.d_HIGH | 0x1F)
                     m_pos = dict_table[dindex]
-                    if m_pos < 0 or ip == m_pos or (ip - m_pos) > m4_MAX_OFFSET:
+                    if m_pos < 0 or ip == m_pos or (ip - m_pos) > defs.m4_MAX_OFFSET:
                         goto_literal = True
                     else:
                         m_off = ip - m_pos
-                        if m_off <= m2_MAX_OFFSET or data[m_pos + 3] == data[ip + 3]:
+                        if m_off <= defs.m2_MAX_OFFSET or data[m_pos + 3] == data[ip + 3]:
                             goto_literal = False
                         else:
                            goto_literal = True
@@ -80,41 +80,41 @@ class LZOCompressor:
             m_off = ip - m_pos
 
             if i < 9:
-                if m_off <= m2_MAX_OFFSET:
+                if m_off <= defs.m2_MAX_OFFSET:
                     m_off -= 1
                     out.append(((m_len - 1) << 5) | ((m_off & 7) << 2))
                     out.append(m_off >> 3)
-                elif m_off <= m3_MAX_OFFSET:
+                elif m_off <= defs.m3_MAX_OFFSET:
                     m_off -= 1
-                    out += [m3_MARKER | (m_len - 2), ((m_off & 63) << 2), m_off >> 6]
+                    out += [defs.m3_MARKER | (m_len - 2), ((m_off & 63) << 2), m_off >> 6]
                 else:
                     m_off -= 0x4000
                     out += [
-                        m4_MARKER | ((m_off & 0x4000) >> 11) | (m_len - 2),
+                        defs.m4_MARKER | ((m_off & 0x4000) >> 11) | (m_len - 2),
                         (m_off & 63) << 2,
                         m_off >> 6,
                     ]
             else:
-                m = m_pos + m2_MAX_LEN + 1
+                m = m_pos + defs.m2_MAX_LEN + 1
                 while ip < in_len and data[m] == data[ip]:
                     m += 1
                     ip += 1
                 m_len = ip - ii
-                if m_off <= m3_MAX_OFFSET:
+                if m_off <= defs.m3_MAX_OFFSET:
                     m_off -= 1
                     if m_len <= 33:
-                        out.append(m3_MARKER | (m_len - 2))
+                        out.append(defs.m3_MARKER | (m_len - 2))
                     else:
                         m_len -= 33
-                        out.append(m3_MARKER)
+                        out.append(defs.m3_MARKER)
                         self.append_multi(out, m_len)
                 else:
                     m_off -= 0x4000
-                    if m_len <= m4_MAX_LEN:
-                        out.append(m4_MARKER | ((m_off & 0x4000) >> 11) | (m_len - 2))
+                    if m_len <= defs.m4_MAX_LEN:
+                        out.append(defs.m4_MARKER | ((m_off & 0x4000) >> 11) | (m_len - 2))
                     else:
-                        m_len -= m4_MAX_LEN
-                        out.append(m4_MARKER | ((m_off & 0x4000) >> 11))
+                        m_len -= defs.m4_MAX_LEN
+                        out.append(defs.m4_MARKER | ((m_off & 0x4000) >> 11))
                         self.append_multi(out, m_len)
                 out += [(m_off & 63) << 2, m_off >> 6]
 
@@ -126,7 +126,7 @@ class LZOCompressor:
     def compress1x(self, data: bytes):
         out = bytearray()
         in_len = len(data)
-        if in_len <= m2_MAX_LEN + 5:
+        if in_len <= defs.m2_MAX_LEN + 5:
             t = in_len
         else:
             out, t = self.compress(data)
@@ -144,5 +144,6 @@ class LZOCompressor:
                 self.append_multi(out, t - 18)
             out += data[ii : ii + t]
 
-        out += [m4_MARKER | 1, 0, 0]
+        out += bytearray([defs.m4_MARKER | 1, 0, 0])
+        # out += [defs.m4_MARKER | 1, 0, 0]
         return bytes(out)

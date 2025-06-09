@@ -90,6 +90,7 @@ class Reader:
                     self.err = io.EOFError()
                     return
 
+
 def copy_match(out: bytearray, m_pos: int, n: int):
     if m_pos + n > len(out):
         for i in range(n):

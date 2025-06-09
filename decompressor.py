@@ -1,10 +1,11 @@
-from defs import m2_MAX_OFFSET
 from utils import Reader, LookBehindUnderrun, copy_match
+import defs
 import io
+
 
 class LZ0Decompressor:
 
-    def decompress1x(r: io.BufferedReader, in_len: int, out_len: int = 0) -> bytes:
+    def decompress1x(self, r: io.BufferedReader, in_len: int, out_len: int = 0) -> bytes:
         out = bytearray()
         in_reader = Reader(r, in_len)
 
@@ -36,7 +37,7 @@ class LZ0Decompressor:
                     if t >= 16:
                         pass
                     else:
-                        m_pos = len(out) - (1 + m2_MAX_OFFSET)
+                        m_pos = len(out) - (1 + defs.m2_MAX_OFFSET)
                         m_pos -= t >> 2
                         ip = safe_read_u8()
                         m_pos -= ip << 2
