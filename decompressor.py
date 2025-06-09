@@ -1,5 +1,5 @@
-import utils
-import defs
+from . import utils
+from . import defs
 import io
 
 

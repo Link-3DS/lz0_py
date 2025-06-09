@@ -1,4 +1,4 @@
-import defs
+from . import defs
 
 
 class LZOCompressor:
