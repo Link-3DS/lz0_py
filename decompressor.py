@@ -1,4 +1,4 @@
-from utils import Reader, LookBehindUnderrun, copy_match
+import utils
 import defs
 import io
 
@@ -7,7 +7,7 @@ class LZ0Decompressor:
 
     def decompress1x(self, r: io.BufferedReader, in_len: int, out_len: int = 0) -> bytes:
         out = bytearray()
-        in_reader = Reader(r, in_len)
+        in_reader = utils.Reader(r, in_len)
 
         def safe_read_u8():
             if not in_reader.cur:
@@ -42,8 +42,8 @@ class LZ0Decompressor:
                         ip = safe_read_u8()
                         m_pos -= ip << 2
                         if m_pos < 0:
-                            raise LookBehindUnderrun()
-                        copy_match(out, m_pos, 3)
+                            raise utils.LookBehindUnderrun()
+                        utils.copy_match(out, m_pos, 3)
                         ip = safe_read_u8()
                         t = ip
                         if t & 3:
@@ -57,7 +57,7 @@ class LZ0Decompressor:
                         m_pos = len(out) - 1 - ((t >> 2) & 7)
                         ip = safe_read_u8()
                         m_pos -= ip << 3
-                        copy_match(out, m_pos, (t >> 5) - 1 + 2)
+                        utils.copy_match(out, m_pos, (t >> 5) - 1 + 2)
                     elif t >= 32:
                         t &= 31
                         if t == 0:
@@ -65,8 +65,8 @@ class LZ0Decompressor:
                         v16 = in_reader.read_u16()
                         m_pos = len(out) - 1 - (v16 >> 2)
                         if m_pos < 0:
-                            raise LookBehindUnderrun()
-                        copy_match(out, m_pos, t + 2)
+                            raise utils.LookBehindUnderrun()
+                        utils.copy_match(out, m_pos, t + 2)
                     elif t >= 16:
                         m_pos = len(out) - ((t & 8) << 11)
                         t &= 7
@@ -78,15 +78,15 @@ class LZ0Decompressor:
                             return bytes(out)
                         m_pos -= 0x4000
                         if m_pos < 0:
-                            raise LookBehindUnderrun()
-                        copy_match(out, m_pos, t + 2)
+                            raise utils.LookBehindUnderrun()
+                        utils.copy_match(out, m_pos, t + 2)
                     else:
                         m_pos = len(out) - 1 - (t >> 2)
                         ip = safe_read_u8()
                         m_pos -= ip << 2
                         if m_pos < 0:
-                            raise LookBehindUnderrun()
-                        copy_match(out, m_pos, 2)
+                            raise utils.LookBehindUnderrun()
+                        utils.copy_match(out, m_pos, 2)
                         ip = safe_read_u8()
                         t = ip
                         if t & 3:
