@@ -2,14 +2,15 @@ from defs import m4_MAX_OFFSET, d_MASK, m2_MAX_OFFSET, m2_MAX_LEN, d_BITS, d_HIG
 
 
 class LZOCompressor:
-    def append_multi(self, out, t):
+
+    def append_multi(self, out: bytearray, t: int):
         while t > 255:
             out.append(0)
             t -= 255
         out.append(t)
         return out
 
-    def compress(self, data):
+    def compress(self, data: bytes):
         out = bytearray()
         dict_table = [-1] * (1 << d_BITS)
         in_len = len(data)
@@ -122,7 +123,7 @@ class LZOCompressor:
         sz = in_len - ii
         return out, sz
 
-    def compress1x(self, data):
+    def compress1x(self, data: bytes):
         out = bytearray()
         in_len = len(data)
         if in_len <= m2_MAX_LEN + 5:
